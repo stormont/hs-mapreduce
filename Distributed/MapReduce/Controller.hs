@@ -21,7 +21,7 @@ instance Ord a => Ord (Node a b) where
 
 data Controller a b = Controller
                     { jobs  :: [a]
-                    , nodes :: [b]
+                    , nodes :: [Node b a]
                     } deriving (Show,Read)
 
 
@@ -42,14 +42,14 @@ popJob c =
       (x:xs) -> (Just x, c { jobs = xs })
 
 
-registerNode :: Eq b => Controller a b -> b -> Controller a b
+registerNode :: Eq b => Controller a b -> Node b a -> Controller a b
 registerNode c n =
    if any (== n) (nodes c)
      then c
      else c { nodes = (n : nodes c) }
 
 
-updateNode :: Eq b => Controller a b -> b -> Controller a b
+updateNode :: Eq b => Controller a b -> Node b a -> Controller a b
 updateNode c n =
    if any (== n) (nodes c)
      then c { nodes = (n : ns') }
@@ -57,12 +57,12 @@ updateNode c n =
    where ns' = filter (/= n) $ nodes c
 
 
-unregisterNode :: Eq b => Controller a b -> b -> Controller a b
+unregisterNode :: Eq b => Controller a b -> Node b a -> Controller a b
 unregisterNode c n = c { nodes = ns }
    where ns = filter (/= n) $ nodes c
 
 
-assignJob :: Eq b => Controller a (Node b a) -> Node b a -> (Controller a (Node b a), Node b a)
+assignJob :: Eq b => Controller a b -> Node b a -> (Controller a b, Node b a)
 assignJob c n = (c'', n')
    where (j,c') = popJob c
          n' = n { currentJob = j }
