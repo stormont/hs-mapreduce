@@ -1,0 +1,7 @@
+This is a basic open framework for implementing MapReduce distributed computations in Haskell.
+
+Use at your own risk; I assume no responsibility for damages that may occur through the use of this code.
+
+Cheers!
+
+stormont
