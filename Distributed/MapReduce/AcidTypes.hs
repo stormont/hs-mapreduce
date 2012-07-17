@@ -42,23 +42,19 @@ $(deriveSafeCopy 0 'base ''Node)
 $(deriveSafeCopy 0 'base ''Controller)
 
 
-peekNextJob :: Query Database String
-peekNextJob = do
-   j <- peekJob <$> ask
-   case j of
-      Nothing -> return []
-      Just x  -> return x
+peekNextJob :: Query Database (Maybe String)
+peekNextJob = peekJob <$> ask
 
 
-popJob :: Instance -> Update Database String
+popJob :: Instance -> Update Database (Maybe String)
 popJob i = do
    c@Controller{..} <- get
    let (c',n) = assignJob c i
    case currentJob n of
-      Nothing -> return []
+      Nothing -> return Nothing
       Just x  -> do
             put c'
-            return x
+            return $ Just x
 
 
 peekInstances :: Query Database [Instance]

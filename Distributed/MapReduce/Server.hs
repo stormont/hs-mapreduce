@@ -14,54 +14,62 @@ import Controller
 import AcidTypes
 
 
+data Callbacks = Callbacks
+               { registerCallback         :: (String -> IO ())
+               , unregisterCallback       :: (String -> IO ())
+               , formatPeekResponse       :: (Maybe String -> [Instance] -> String)
+               , formatRequestResponse    :: (Maybe String -> String)
+               , formatRegisterResponse   :: (Instance -> String)
+               , formatUnregisterResponse :: (Instance -> String)
+               }
+
+
 myPolicy :: BodyPolicy
 myPolicy = (defaultBodyPolicy "/tmp/" 0 1000 1000)
 
 
-startServer config js = do
+startServer config cFuncs js = do
    bracket (openLocalState (initDatabase js))
            (createCheckpointAndClose)
-           (\acid -> simpleHTTP config (handlers acid))
+           (\acid -> simpleHTTP config (handlers acid cFuncs))
 
 
-handlers acid = do
+handlers acid cFuncs = do
    decodeBody myPolicy
    msum
-      [ dir "peek"       $ doPeek acid
-      , dir "request"    $ doRequest acid
-      , dir "register"   $ doRegister acid
-      , dir "unregister" $ doUnregister acid
+      [ dir "peek"       $ doPeek acid cFuncs
+      , dir "request"    $ doRequest acid cFuncs
+      , dir "register"   $ doRegister acid cFuncs
+      , dir "unregister" $ doUnregister acid cFuncs
       ]
 
 
-doPeek acid = do
+doPeek acid cFuncs = do
    methodM GET
-   t <- query' acid PeekNextJob
-   rs <- query' acid PeekInstances
-   let r =  "Next job: " ++ t ++ "\n"
-         ++ "Instances:\n" ++ (show rs)
-   ok $ toResponse r
+   j <- query' acid PeekNextJob
+   is <- query' acid PeekInstances
+   ok $ toResponse $ (formatPeekResponse cFuncs) j is
 
 
-doRequest acid = do
+doRequest acid cFuncs = do
    methodM POST
    name <- lookRead "id"
    let i = initInstance name
    j <- update' acid (PopJob i)
-   ok $ toResponse j
+   ok $ toResponse $ (formatRequestResponse cFuncs) j
 
 
-doRegister acid = do
+doRegister acid cFuncs = do
    methodM POST
    name <- lookRead "id"
    let i = initInstance name
    mr <- update' acid (RegisterInstance i)
-   ok $ toResponse $ "Instance registered: " ++ identifier i
+   ok $ toResponse $ (formatRegisterResponse cFuncs) i
 
 
-doUnregister acid = do
+doUnregister acid cFuncs = do
    methodM POST
    name <- lookRead "id"
    let i = initInstance name
    mr <- update' acid (UnregisterInstance i)
-   ok $ toResponse $ "Instance unregistered: " ++ identifier i
+   ok $ toResponse $ (formatUnregisterResponse cFuncs) i
