@@ -15,8 +15,8 @@ import AcidTypes
 
 
 data Callbacks = Callbacks
-               { registerCallback         :: (String -> IO ())
-               , unregisterCallback       :: (String -> IO ())
+               { registerCallback         :: (Instance -> IO ())
+               , unregisterCallback       :: (Instance -> IO ())
                , formatPeekResponse       :: (Maybe String -> [Instance] -> String)
                , formatRequestResponse    :: (Maybe String -> String)
                , formatRegisterResponse   :: (Instance -> String)
@@ -64,6 +64,7 @@ doRegister acid cFuncs = do
    name <- lookRead "id"
    let i = initInstance name
    mr <- update' acid (RegisterInstance i)
+   liftIO $ (registerCallback cFuncs) i
    ok $ toResponse $ (formatRegisterResponse cFuncs) i
 
 
@@ -72,4 +73,5 @@ doUnregister acid cFuncs = do
    name <- lookRead "id"
    let i = initInstance name
    mr <- update' acid (UnregisterInstance i)
+   liftIO $ (unregisterCallback cFuncs) i
    ok $ toResponse $ (formatUnregisterResponse cFuncs) i
