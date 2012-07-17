@@ -1,4 +1,4 @@
-
+{-# LANGUAGE DeriveDataTypeable #-}
 -- | This module contains the logic for dispensing jobs to appropriate worker nodes.
 -- Any given job will only be dispensed to one worker node (unless that node times
 -- out) and worker nodes can only retrieve jobs if they have registered themselves
@@ -25,6 +25,8 @@
 module Controller
    where
 
+import Data.Data (Data, Typeable)
+
 
 -- | The node used to process an individual job. This is a mapping of jobs to node
 -- identifiers.
@@ -33,7 +35,7 @@ data Node i j r = Node
                 , currentJob :: Maybe j
                 , result     :: Maybe r
                 , timestamp  :: String
-                } deriving (Show,Read)
+                } deriving (Show,Read,Data,Typeable)
 
 
 -- | 'Node's are compared by their 'identifier'.
@@ -59,7 +61,7 @@ data Controller j i r = Controller
                       { jobs    :: [j]
                       , nodes   :: [Node i j r]
                       , results :: [r]
-                      } deriving (Show,Read)
+                      } deriving (Show,Read,Data,Typeable)
 
 
 -- | @createController jobList@ creates a 'Controller' with no 'Node's and assigns
