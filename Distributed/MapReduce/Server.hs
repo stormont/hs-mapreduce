@@ -1,5 +1,5 @@
 
-module Server
+module Distributed.MapReduce.Server
    where
 
 import Control.Monad       (msum)
@@ -10,13 +10,14 @@ import Data.Acid.Advanced  (query', update')
 import Data.Acid.Local     (createCheckpointAndClose)
 import Happstack.Server
 
-import Controller
-import AcidTypes
+import Distributed.MapReduce.Controller
+import Distributed.MapReduce.AcidTypes
 
 
 data Callbacks = Callbacks
                { registerCallback         :: (Instance -> IO ())
                , unregisterCallback       :: (Instance -> IO ())
+               , jobCallback              :: (Instance -> Maybe String -> IO ())
                , formatPeekResponse       :: (Maybe String -> [Instance] -> String)
                , formatRequestResponse    :: (Maybe String -> String)
                , formatRegisterResponse   :: (Instance -> String)
@@ -56,6 +57,7 @@ doRequest acid cFuncs = do
    name <- lookRead "id"
    let i = initInstance name
    j <- update' acid (PopJob i)
+   liftIO $ (jobCallback cFuncs) i j
    ok $ toResponse $ (formatRequestResponse cFuncs) j
 
 

@@ -7,7 +7,7 @@
              TypeFamilies,
              RecordWildCards,
              TypeSynonymInstances #-}
-module AcidTypes
+module Distributed.MapReduce.AcidTypes
    where
 
 import Control.Applicative  ( (<$>) )
@@ -19,7 +19,7 @@ import Data.SafeCopy        ( base, deriveSafeCopy )
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy.Char8 as LB
 
-import Controller
+import Distributed.MapReduce.Controller
 
 
 type Instance = Node String String String

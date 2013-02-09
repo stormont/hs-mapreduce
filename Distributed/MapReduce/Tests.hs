@@ -1,5 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
-module Tests
+module Distributed.MapReduce.Tests
    where
 
 import Data.List (nub, sort)
@@ -7,7 +7,7 @@ import Test.QuickCheck
 import Test.QuickCheck.All
 import Language.Haskell.TH
 
-import Controller
+import Distributed.MapReduce.Controller
 
 
 instance (Arbitrary a, Arbitrary b, Arbitrary c) => Arbitrary (Node a b c) where

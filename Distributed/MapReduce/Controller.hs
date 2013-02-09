@@ -22,7 +22,7 @@
 -- > -- Unregister the worker node from the controller
 -- > myController'''' = unregisterNode myController''' myNode
 --
-module Controller
+module Distributed.MapReduce.Controller
    where
 
 import Data.Data (Data, Typeable)

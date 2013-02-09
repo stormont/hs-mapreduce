@@ -1,3 +1,3 @@
 
-module Client
+module Distributed.MapReduce.Client
    where
