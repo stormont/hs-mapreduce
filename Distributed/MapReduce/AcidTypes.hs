@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP,
              DeriveDataTypeable,
              FlexibleContexts,
+             FlexibleInstances,
              GeneralizedNewtypeDeriving, 
              MultiParamTypeClasses,
              TemplateHaskell,
@@ -19,17 +20,17 @@ import Data.SafeCopy        ( base, deriveSafeCopy )
 import qualified Data.ByteString.Char8 as B
 import qualified Data.ByteString.Lazy.Char8 as LB
 
-import Distributed.MapReduce.Controller
+import qualified Distributed.MapReduce.Controller as C
 
 
-type Instance = Node String String String
-type Database = Controller String String String
+type Instance = C.Node String String String
+type Database = C.Controller String String String
 
 
-initInstance i = Node i Nothing Nothing []
+initInstance i = C.Node i Nothing Nothing []
 
 initDatabase ::[String] -> Database
-initDatabase xs = Controller xs [] []
+initDatabase xs = C.Controller xs [] []
 
 
 findInst i xs = filter (== i) xs
@@ -37,20 +38,20 @@ findInst i xs = filter (== i) xs
 findNotInst i xs = filter (/= i) xs
 
 
-$(deriveSafeCopy 0 'base ''Node)
+$(deriveSafeCopy 0 'base ''C.Node)
 
-$(deriveSafeCopy 0 'base ''Controller)
+$(deriveSafeCopy 0 'base ''C.Controller)
 
 
 peekNextJob :: Query Database (Maybe String)
-peekNextJob = peekJob <$> ask
+peekNextJob = C.peekJob <$> ask
 
 
 popJob :: Instance -> Update Database (Maybe String)
 popJob i = do
-   c@Controller{..} <- get
-   let (c',n) = assignJob c i
-   case currentJob n of
+   c@C.Controller{..} <- get
+   let (c',n) = C.assignJob c i
+   case C.currentJob n of
       Nothing -> return Nothing
       Just x  -> do
             put c'
@@ -58,20 +59,20 @@ popJob i = do
 
 
 peekInstances :: Query Database [Instance]
-peekInstances = nodes <$> ask
+peekInstances = C.nodes <$> ask
 
 
 registerInstance :: Instance -> Update Database ()
 registerInstance i = do
-   c@Controller{..} <- get
-   put $ registerNode c i
+   c@C.Controller{..} <- get
+   put $ C.registerNode c i
    return ()
 
 
 unregisterInstance :: Instance -> Update Database ()
 unregisterInstance i = do
-   c@Controller{..} <- get
-   put $ unregisterNode c i
+   c@C.Controller{..} <- get
+   put $ C.unregisterNode c i
    return ()
 
 
